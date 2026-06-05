@@ -209,7 +209,7 @@
 .app-shell.sidebar-collapsed .role-toggle,
 .app-shell.sidebar-collapsed .sidebar-bottom-info,
 .app-shell.sidebar-collapsed .nav-badge {
-  display: none;
+  display: flex;
 }
 .app-shell.sidebar-collapsed .nav-item {
   justify-content: center;
@@ -223,7 +223,7 @@
   justify-content: center;
 }
 .app-shell.sidebar-collapsed .sidebar-toggle {
-  display: none;
+  display: flex;
 }
 
 /* ── Sidebar Bottom ── */
