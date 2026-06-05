@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="Brightspace LMS — Your personalized learning dashboard. View courses, upcoming deadlines, grades, and announcements all in one place."/>
+  <title>Dashboard — Brightspace LMS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/design-system.css"/>
+  <link rel="stylesheet" href="css/layout.css"/>
+  <link rel="stylesheet" href="css/animations.css"/>
+  <style>
+    /* ── Dashboard-specific ── */
+    .priority-feed {}
+
+    .task-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 14px 16px;
+      border-radius: var(--radius-md);
+      transition: all var(--transition-fast);
+      cursor: pointer;
+      position: relative;
+    }
+    .task-item:hover { background: var(--bg-elevated); }
+    .task-item + .task-item { border-top: 1px solid var(--border); }
+
+    .task-icon {
+      width: 38px; height: 38px;
+      border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .task-body { flex: 1; min-width: 0; }
+    .task-title { font-size: 0.9rem; font-weight: 600; color: var(--text-primary); }
+    .task-course { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
+    .task-meta { display: flex; align-items: center; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
+    .task-due {
+      display: flex; align-items: center; gap: 4px;
+      font-size: 0.75rem; font-weight: 600;
+    }
+    .task-action { flex-shrink: 0; display: flex; align-items: center; gap: 6px; }
+
+    /* ── Announcement Card ── */
+    .announcement-item {
+      padding: 14px 16px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: background var(--transition-fast);
+    }
+    .announcement-item:hover { background: var(--bg-elevated); }
+    .announcement-item + .announcement-item { border-top: 1px solid var(--border); }
+    .announcement-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+    .announcement-title { font-size: 0.9rem; font-weight: 600; color: var(--text-primary); }
+    .announcement-body  { font-size: 0.83rem; color: var(--text-secondary); margin-top: 6px; line-height: 1.5; }
+    .announcement-meta  { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+
+    /* ── Mini Calendar ── */
+    .mini-calendar { user-select: none; }
+    .cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .cal-nav { border: none; background: var(--bg-elevated); border-radius: var(--radius-sm); width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-secondary); transition: all var(--transition-fast); }
+    .cal-nav:hover { background: var(--primary-light); color: var(--primary); }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+    .cal-day-label { text-align: center; font-size: 0.68rem; font-weight: 600; color: var(--text-muted); padding: 4px; letter-spacing: 0.05em; }
+    .cal-day {
+      aspect-ratio: 1;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.8rem;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      color: var(--text-secondary);
+      position: relative;
+    }
+    .cal-day:hover { background: var(--bg-elevated); color: var(--text-primary); }
+    .cal-day.today { background: var(--primary); color: #fff; font-weight: 700; }
+    .cal-day.has-event::after {
+      content: '';
+      position: absolute;
+      bottom: 3px;
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+    .cal-day.today.has-event::after { background: rgba(255,255,255,0.6); }
+    .cal-day.other-month { opacity: 0.3; }
+    .cal-day.selected { background: var(--primary-light); color: var(--primary); font-weight: 600; }
+
+    /* ── Upcoming Events ── */
+    .event-item { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; }
+    .event-item + .event-item { border-top: 1px solid var(--border); }
+    .event-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+    .event-info .event-name { font-size: 0.83rem; font-weight: 600; color: var(--text-primary); }
+    .event-info .event-when { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+
+    /* ── Course tile quick access ── */
+    .course-quick-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .course-quick-tile {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 8px;
+      border-radius: var(--radius-lg);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all var(--transition);
+      text-decoration: none;
+      text-align: center;
+    }
+    .course-quick-tile:hover {
+      border-color: rgba(91,95,239,0.4);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+    .course-tile-icon {
+      width: 42px; height: 42px;
+      border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem;
+    }
+    .course-tile-code { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.05em; }
+    .course-tile-name { font-size: 0.78rem; font-weight: 600; color: var(--text-primary); line-height: 1.3; }
+
+    /* ── Grade Summary ── */
+    .gpa-ring {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      background: conic-gradient(var(--primary) 0deg 306deg, var(--bg-elevated) 306deg 360deg);
+      display: flex; align-items: center; justify-content: center;
+      position: relative;
+    }
+    .gpa-ring::before {
+      content: '';
+      position: absolute;
+      inset: 8px;
+      border-radius: 50%;
+      background: var(--bg-surface);
+    }
+    .gpa-value { position: relative; z-index: 1; font-size: 1.1rem; font-weight: 800; color: var(--text-primary); }
+
+    /* ── Welcome banner ── */
+    .welcome-banner {
+      background: linear-gradient(135deg, var(--primary) 0%, #8B5CF6 50%, var(--accent) 100%);
+      border-radius: var(--radius-xl);
+      padding: 28px 32px;
+      position: relative;
+      overflow: hidden;
+      color: #fff;
+    }
+    .welcome-banner::before {
+      content: '';
+      position: absolute;
+      top: -50%; right: -10%;
+      width: 300px; height: 300px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.06);
+    }
+    .welcome-banner::after {
+      content: '';
+      position: absolute;
+      bottom: -60%; right: 20%;
+      width: 200px; height: 200px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.04);
+    }
+    .welcome-banner h2 { color: #fff; font-size: 1.5rem; }
+    .welcome-banner p  { color: rgba(255,255,255,0.8); margin-top: 6px; }
+  </style>
+</head>
+<body>
+<div class="app-shell" id="appShell">
+  <!-- ═══════════════ SIDEBAR ═══════════════ -->
+  <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
+    <div class="sidebar-header">
+      <a href="index.html" class="logo" aria-label="Brightspace LMS home">
+        <div class="logo-icon" aria-hidden="true">B</div>
+        <div class="logo-text">
+          <span class="brand">Brightspace</span>
+          <span class="sub">D2L Learning</span>
+        </div>
+      </a>
+      <button class="sidebar-toggle" id="sidebarToggle" aria-label="Collapse sidebar" data-tooltip="Collapse (Ctrl+B)">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+    </div>
+
+    <!-- Role Toggle -->
+    <div class="role-toggle" role="group" aria-label="Switch user role">
+      <button class="role-btn" data-role-btn="student" aria-pressed="true">🎓 Student</button>
+      <button class="role-btn" data-role-btn="instructor" aria-pressed="false">👨‍🏫 Instructor</button>
+    </div>
+
+    <!-- Search -->
+    <div class="sidebar-search">
+      <div class="input-group">
+        <svg class="input-icon" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="search" class="input" id="sidebarSearch" placeholder="Filter menu..." aria-label="Filter navigation"/>
+      </div>
+    </div>
+
+    <div class="sidebar-scroll">
+      <!-- Main Navigation -->
+      <nav class="nav-section" aria-label="Main">
+        <div class="nav-section-label">Main</div>
+        <a href="index.html" class="nav-item" data-page="index.html" aria-label="Dashboard">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          <span class="nav-label">Dashboard</span>
+        </a>
+        <a href="courses.html" class="nav-item" data-page="courses.html" aria-label="My Courses">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          <span class="nav-label">My Courses</span>
+        </a>
+        <a href="calendar.html" class="nav-item" data-page="calendar.html" aria-label="Calendar">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <span class="nav-label">Calendar</span>
+        </a>
+        <a href="assignments.html" class="nav-item" data-page="assignments.html" aria-label="Assignments">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          <span class="nav-label">Assignments</span>
+          <span class="nav-badge" aria-label="4 items due soon">4</span>
+        </a>
+        <a href="grades.html" class="nav-item" data-page="grades.html" aria-label="Grades">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          <span class="nav-label">Grades</span>
+        </a>
+        <a href="discussions.html" class="nav-item" data-page="discussions.html" aria-label="Discussions">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <span class="nav-label">Discussions</span>
+          <span class="nav-badge" aria-label="7 unread">7</span>
+        </a>
+        <a href="quizzes.html" class="nav-item" data-page="quizzes.html" aria-label="Quizzes & Tests">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <span class="nav-label">Quizzes & Tests</span>
+        </a>
+      </nav>
+
+      <!-- Course Navigation -->
+      <nav class="nav-section" aria-label="Courses">
+        <div class="nav-section-label">My Courses</div>
+        <a href="course-home.html?id=cs301" class="nav-item" data-page="course-home.html" style="border-left: 3px solid var(--course-blue); padding-left: 13px;">
+          <span style="width:8px;height:8px;border-radius:50%;background:var(--course-blue);flex-shrink:0"></span>
+          <span class="nav-label">CS 301 — Algorithms</span>
+        </a>
+        <a href="course-home.html?id=cs401" class="nav-item" data-page="course-home.html" style="border-left: 3px solid var(--course-purple); padding-left: 13px;">
+          <span style="width:8px;height:8px;border-radius:50%;background:var(--course-purple);flex-shrink:0"></span>
+          <span class="nav-label">CS 401 — Machine Learning</span>
+        </a>
+        <a href="course-home.html?id=eng210" class="nav-item" data-page="course-home.html" style="border-left: 3px solid var(--course-pink); padding-left: 13px;">
+          <span style="width:8px;height:8px;border-radius:50%;background:var(--course-pink);flex-shrink:0"></span>
+          <span class="nav-label">ENG 210 — Tech Writing</span>
+        </a>
+        <a href="course-home.html?id=math301" class="nav-item" data-page="course-home.html" style="border-left: 3px solid var(--course-orange); padding-left: 13px;">
+          <span style="width:8px;height:8px;border-radius:50%;background:var(--course-orange);flex-shrink:0"></span>
+          <span class="nav-label">MATH 301 — Linear Algebra</span>
+        </a>
+        <a href="course-home.html?id=cs350" class="nav-item" data-page="course-home.html" style="border-left: 3px solid var(--course-green); padding-left: 13px;">
+          <span style="width:8px;height:8px;border-radius:50%;background:var(--course-green);flex-shrink:0"></span>
+          <span class="nav-label">CS 350 — Software Eng.</span>
+        </a>
+        <a href="course-home.html?id=cs210" class="nav-item" data-page="course-home.html" style="border-left: 3px solid var(--course-teal); padding-left: 13px;">
+          <span style="width:8px;height:8px;border-radius:50%;background:var(--course-teal);flex-shrink:0"></span>
+          <span class="nav-label">CS 210 — Database Systems</span>
+        </a>
+      </nav>
+
+      <!-- Tools -->
+      <nav class="nav-section" aria-label="Tools">
+        <div class="nav-section-label">Tools</div>
+        <a href="content.html" class="nav-item" data-page="content.html">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+          <span class="nav-label">Course Content</span>
+        </a>
+        <a href="#" class="nav-item" onclick="Toast.show('Brightspace ePortfolio opened','info'); return false;">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+          <span class="nav-label">ePortfolio</span>
+        </a>
+        <a href="#" class="nav-item" onclick="Toast.show('Awards & Badges opened','info'); return false;">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
+          <span class="nav-label">Awards & Badges</span>
+        </a>
+        <a href="#" class="nav-item" onclick="Toast.show('Surveys opened','info'); return false;">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          <span class="nav-label">Surveys</span>
+        </a>
+        <a href="#" class="nav-item" onclick="Toast.show('Checklist opened','info'); return false;">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          <span class="nav-label">Checklists</span>
+        </a>
+        <a href="#" class="nav-item" onclick="Toast.show('Groups opened','info'); return false;">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span class="nav-label">Groups</span>
+        </a>
+
+        <!-- Instructor-only tools -->
+        <a href="#" class="nav-item" data-instructor-only style="display:none" onclick="Toast.show('Competencies opened','info'); return false;">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <span class="nav-label">Competencies</span>
+        </a>
+        <a href="#" class="nav-item" data-instructor-only style="display:none" onclick="Toast.show('Analytics opened','info'); return false;">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          <span class="nav-label">Class Analytics</span>
+        </a>
+        <a href="#" class="nav-item" data-instructor-only style="display:none" onclick="Toast.show('Rubrics opened','info'); return false;">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          <span class="nav-label">Rubrics</span>
+        </a>
+        <a href="#" class="nav-item" data-instructor-only style="display:none" onclick="Toast.show('Grade settings opened','info'); return false;">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <span class="nav-label">Grade Settings</span>
+        </a>
+      </nav>
+    </div>
+
+    <!-- Sidebar Bottom -->
+    <div class="sidebar-bottom">
+      <a href="profile.html" class="sidebar-bottom-info" aria-label="View your profile">
+        <div class="avatar-placeholder" style="width:36px;height:36px;font-size:0.85rem" id="sidebarAvatar">AJ</div>
+        <div class="info-text sidebar-bottom-info">
+          <div class="name" id="sidebarName">Alex Johnson</div>
+          <div class="role-text" id="sidebarRole">Student · Fall 2024</div>
+        </div>
+      </a>
+    </div>
+  </aside>
+
+  <!-- ═══════════════ TOPBAR ═══════════════ -->
+  <header class="topbar" role="banner">
+    <div class="topbar-left">
+      <button class="btn btn-icon" id="mobileSidebarToggle" aria-label="Open navigation menu" style="display:none">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+
+      <!-- Breadcrumb -->
+      <nav aria-label="Breadcrumb" class="breadcrumbs">
+        <a href="index.html">Home</a>
+        <span class="sep" aria-hidden="true">/</span>
+        <span class="current" aria-current="page">Dashboard</span>
+      </nav>
+
+      <!-- Global search -->
+      <div class="input-group" style="max-width:320px;flex:1" role="search">
+        <svg class="input-icon" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="search" class="input" id="globalSearch" placeholder="Search courses, content... (⌘K)" aria-label="Search Brightspace"/>
+      </div>
+    </div>
+
+    <div class="topbar-right">
+      <!-- System status -->
+      <div id="systemStatus" class="system-status" role="status" aria-live="polite">
+        <span class="status-dot online"></span> All systems operational
+      </div>
+
+      <!-- Role badge -->
+      <span class="badge badge-accent" id="roleBadge">Student View</span>
+
+      <!-- Theme toggle -->
+      <button class="btn btn-icon" id="themeToggle" aria-label="Toggle theme" data-tooltip="Light mode">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      </button>
+
+      <!-- Notifications -->
+      <div class="dropdown notif-btn" style="position:relative">
+        <button class="btn btn-icon" id="notifBell" aria-label="Notifications — 3 unread" aria-expanded="false" aria-haspopup="true">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="notif-count" aria-hidden="true">3</span>
+        </button>
+
+        <!-- Notification panel -->
+        <div class="notif-panel" id="notifPanel" role="dialog" aria-label="Notifications" aria-hidden="true">
+          <div class="notif-panel-header">
+            <h3 style="font-size:0.95rem;font-weight:700">Notifications</h3>
+            <button class="btn btn-ghost btn-sm" id="markAllRead" aria-label="Mark all notifications as read">Mark all read</button>
+          </div>
+          <ul class="notif-list" role="list">
+            <li class="notif-item unread" role="listitem" onclick="Toast.show('Opening announcement...','info')">
+              <div style="font-size:1.2rem">📢</div>
+              <div class="notif-item-content">
+                <div class="notif-item-title">Quiz 3 Moved to Friday — CS 401</div>
+                <div class="notif-item-text">Dr. Chen has rescheduled Quiz 3 to this Friday at 2PM.</div>
+                <div class="notif-item-time">10 min ago</div>
+              </div>
+            </li>
+            <li class="notif-item unread" role="listitem" onclick="Toast.show('Opening grade feedback...','success')">
+              <div style="font-size:1.2rem">✅</div>
+              <div class="notif-item-content">
+                <div class="notif-item-title">Assignment 3 Graded — CS 301</div>
+                <div class="notif-item-text">You received 47/50 — great work on the sorting algorithms!</div>
+                <div class="notif-item-time">2 hours ago</div>
+              </div>
+            </li>
+            <li class="notif-item unread" role="listitem" onclick="Toast.show('Opening discussion...','info')">
+              <div style="font-size:1.2rem">💬</div>
+              <div class="notif-item-content">
+                <div class="notif-item-title">New Reply in Sprint 3 — CS 350</div>
+                <div class="notif-item-text">Prof. Rivera replied to your post in "Architecture Discussion".</div>
+                <div class="notif-item-time">5 hours ago</div>
+              </div>
+            </li>
+            <li class="notif-item" role="listitem" onclick="Toast.show('Opening calendar...','info')">
+              <div style="font-size:1.2rem">⏰</div>
+              <div class="notif-item-content">
+                <div class="notif-item-title">Deadline Reminder — MATH 301</div>
+                <div class="notif-item-text">Problem Set 7 is due tomorrow at 11:59 PM.</div>
+                <div class="notif-item-time">1 day ago</div>
+              </div>
+            </li>
+            <li class="notif-item" role="listitem">
+              <div style="font-size:1.2rem">📢</div>
+              <div class="notif-item-content">
+                <div class="notif-item-title">Office Hours Cancelled — ENG 210</div>
+                <div class="notif-item-text">Prof. Torres will be unavailable on Dec 20th.</div>
+                <div class="notif-item-time">2 days ago</div>
+              </div>
+            </li>
+          </ul>
+          <div style="padding:10px;border-top:1px solid var(--border)">
+            <a href="#" class="btn btn-ghost btn-sm w-full" style="justify-content:center">View all notifications</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profile dropdown -->
+      <div class="dropdown">
+        <button class="btn btn-icon" data-dropdown-trigger aria-label="User menu" aria-expanded="false" aria-haspopup="true" style="padding:0">
+          <div class="avatar-placeholder" style="width:36px;height:36px;font-size:0.85rem">AJ</div>
+        </button>
+        <div class="dropdown-menu" role="menu">
+          <div style="padding:10px 12px 6px;border-bottom:1px solid var(--border)">
+            <div style="font-weight:600;font-size:0.875rem">Alex Johnson</div>
+            <div style="font-size:0.78rem;color:var(--text-muted)">alex.johnson@university.edu</div>
+          </div>
+          <a href="profile.html" class="dropdown-item" role="menuitem">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Profile & Settings
+          </a>
+          <div class="dropdown-item" role="menuitem" onclick="Toast.show('Opening account security settings...','info')">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Account Security
+          </div>
+          <div class="dropdown-item" role="menuitem" onclick="Toast.show('Opening accessibility settings...','info')">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Accessibility
+          </div>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-item danger" role="menuitem" onclick="Toast.show('You have been signed out.','warning')">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Sign out
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ═══════════════ MAIN CONTENT ═══════════════ -->
+  <main class="main-content" id="mainContent" role="main" aria-label="Dashboard content">
+    <!-- Welcome Banner -->
+    <div class="welcome-banner stagger-1">
+      <div style="position:relative;z-index:1">
+        <h2>Good evening, Alex! 👋</h2>
+        <p>You have <strong style="color:#fff">4 items due this week</strong> and <strong style="color:#fff">3 unread announcements</strong>.</p>
+        <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap">
+          <a href="assignments.html" class="btn" style="background:rgba(255,255,255,0.2);color:#fff;border:1px solid rgba(255,255,255,0.3);backdrop-filter:blur(10px)">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            View Assignments
+          </a>
+          <a href="calendar.html" class="btn" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);backdrop-filter:blur(10px)">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Open Calendar
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="stats-row stagger-2">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:var(--primary-light)">📚</div>
+        <div class="stat-info">
+          <div class="stat-value">6</div>
+          <div class="stat-label">Active Courses</div>
+          <div class="stat-change">Fall 2024 semester</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:var(--danger-light)">⏰</div>
+        <div class="stat-info">
+          <div class="stat-value">4</div>
+          <div class="stat-label">Due This Week</div>
+          <div class="stat-change down">↑ 2 more than last week</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:var(--success-light)">🎯</div>
+        <div class="stat-info">
+          <div class="stat-value">3.6</div>
+          <div class="stat-label">Current GPA</div>
+          <div class="stat-change up">↑ +0.2 from last semester</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:var(--warning-light)">🔔</div>
+        <div class="stat-info">
+          <div class="stat-value">3</div>
+          <div class="stat-label">Unread Alerts</div>
+          <div class="stat-change">2 announcements, 1 reply</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Dashboard Grid -->
+    <div class="dashboard-grid stagger-3">
+      <!-- Left Column -->
+      <div style="display:flex;flex-direction:column;gap:20px">
+
+        <!-- Priority Tasks -->
+        <div class="card" id="priorityFeed">
+          <div class="section-header">
+            <h3>
+              <svg width="16" height="16" fill="none" stroke="var(--danger)" stroke-width="2" viewBox="0 0 24 24" style="margin-right:6px;vertical-align:-3px"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              Priority — Due Soon
+            </h3>
+            <a href="assignments.html" class="btn btn-ghost btn-sm">View all →</a>
+          </div>
+
+          <div id="taskList">
+            <!-- Tasks injected by JS -->
+          </div>
+        </div>
+
+        <!-- Announcements -->
+        <div class="card">
+          <div class="section-header">
+            <h3>📢 Recent Announcements</h3>
+            <div style="display:flex;gap:6px">
+              <span class="badge badge-danger" style="font-size:0.7rem">3 unread</span>
+              <a href="#" class="btn btn-ghost btn-sm">All →</a>
+            </div>
+          </div>
+          <div id="announcementList"></div>
+        </div>
+
+        <!-- Quick Course Access -->
+        <div class="card">
+          <div class="section-header">
+            <h3>📚 My Courses</h3>
+            <a href="courses.html" class="btn btn-ghost btn-sm">View all →</a>
+          </div>
+          <div class="course-quick-grid" id="courseQuickGrid"></div>
+        </div>
+      </div>
+
+      <!-- Right Column -->
+      <div style="display:flex;flex-direction:column;gap:20px">
+
+        <!-- Mini Calendar -->
+        <div class="card">
+          <div class="mini-calendar">
+            <div class="cal-header">
+              <button class="cal-nav" id="calPrev" aria-label="Previous month">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+              </button>
+              <h4 id="calMonthYear" style="font-size:0.95rem;font-weight:700"></h4>
+              <button class="cal-nav" id="calNext" aria-label="Next month">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+              </button>
+            </div>
+            <div class="cal-grid" id="calGrid"></div>
+          </div>
+
+          <!-- Upcoming events -->
+          <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:14px">
+            <div class="section-header" style="margin-bottom:10px">
+              <h3 style="font-size:0.85rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.06em">Upcoming</h3>
+              <a href="calendar.html" class="btn btn-ghost btn-sm" style="font-size:0.78rem">Full calendar →</a>
+            </div>
+            <div id="upcomingList"></div>
+          </div>
+        </div>
+
+        <!-- Grade Overview -->
+        <div class="card">
+          <div class="section-header">
+            <h3>📊 Grade Overview</h3>
+            <a href="grades.html" class="btn btn-ghost btn-sm">Details →</a>
+          </div>
+          <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px">
+            <div class="gpa-ring" aria-label="GPA 3.6 out of 4.0">
+              <span class="gpa-value">3.6</span>
+            </div>
+            <div>
+              <div style="font-size:1rem;font-weight:700;color:var(--text-primary)">Overall GPA</div>
+              <div style="font-size:0.8rem;color:var(--text-muted)">15 credits · Fall 2024</div>
+              <div style="font-size:0.8rem;color:var(--success);font-weight:600;margin-top:4px">↑ Dean's List eligible</div>
+            </div>
+          </div>
+          <div id="gradeList" style="display:flex;flex-direction:column;gap:10px"></div>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="card">
+          <h3 style="margin-bottom:14px;font-size:0.95rem">⚡ Quick Actions</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <a href="content.html" class="btn btn-secondary btn-sm" style="justify-content:flex-start;gap:8px">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+              Content
+            </a>
+            <a href="grades.html" class="btn btn-secondary btn-sm" style="justify-content:flex-start;gap:8px">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+              Grades
+            </a>
+            <a href="quizzes.html" class="btn btn-secondary btn-sm" style="justify-content:flex-start;gap:8px">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              Quizzes
+            </a>
+            <a href="discussions.html" class="btn btn-secondary btn-sm" style="justify-content:flex-start;gap:8px">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              Discuss
+            </a>
+            <a href="profile.html" class="btn btn-secondary btn-sm" style="justify-content:flex-start;gap:8px">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              Profile
+            </a>
+            <button class="btn btn-secondary btn-sm" style="justify-content:flex-start;gap:8px" onclick="Toast.show('Opening D2L Brightspace help center...','info')">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              Help Center
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ── SKIP TO CONTENT LINK (accessibility) ── -->
+<a href="#mainContent" class="skip-link" style="
+  position:fixed;top:-100%;left:16px;z-index:9999;
+  padding:8px 16px;background:var(--primary);color:#fff;
+  border-radius:0 0 var(--radius-md) var(--radius-md);
+  font-weight:600;text-decoration:none;
+  transition:top 0.2s;
+" onblur="this.style.top='-100%'" onfocus="this.style.top='0'">
+  Skip to main content
+</a>
+
+<script src="js/data.js"></script>
+<script src="js/navigation.js"></script>
+<script>
+/* ── Dashboard Page Logic ── */
+document.addEventListener('DOMContentLoaded', () => {
+  const { assignments, courses, notifications, calendarEvents, grades } = MockData;
+
+  /* Render Priority Tasks */
+  const taskList = document.getElementById('taskList');
+  const pending = assignments.filter(a => a.status === 'pending').slice(0,4);
+  if (taskList) {
+    taskList.innerHTML = pending.map(task => {
+      const due = new Date(task.due);
+      const diff = due - Date.now();
+      const urgent = diff < 86400000;
+      const warning = diff < 259200000;
+      const dueStr = due.toLocaleDateString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+      const typeIcons = { assignment:'📄', quiz:'❓', discussion:'💬' };
+      return `
+        <a href="assignments.html" class="task-item" style="text-decoration:none">
+          <div class="task-icon" style="background:${task.courseColor}22">
+            <span>${typeIcons[task.type]||'📄'}</span>
+          </div>
+          <div class="task-body">
+            <div class="task-title">${task.title}</div>
+            <div class="task-course">${task.course}</div>
+            <div class="task-meta">
+              <span class="task-due ${urgent?'text-danger':warning?'text-warning':'text-muted'}">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                ${dueStr}
+              </span>
+              <span class="badge ${urgent?'badge-danger':warning?'badge-warning':'badge-muted'}">${urgent?'Urgent':warning?'Soon':'Upcoming'}</span>
+            </div>
+          </div>
+          <div class="task-action">
+            <span class="badge badge-muted">${task.type}</span>
+          </div>
+        </a>`;
+    }).join('');
+  }
+
+  /* Render Announcements */
+  const announcementList = document.getElementById('announcementList');
+  const announcements = [
+    { course: 'CS 401', color: 'var(--course-purple)', title: 'Quiz 3 Rescheduled to Friday Dec 20', body: 'Due to the department seminar, Quiz 3 on Neural Networks has been moved. Please review Chapters 8-10 and the backpropagation notes.', time: '10 min ago', unread: true },
+    { course: 'CS 350', color: 'var(--course-green)', title: 'Sprint 3 Demo Requirements Updated', body: 'Please include a 2-minute live demo of your deployed application. All teams must submit their presentation slides 24h before.', time: '3 hours ago', unread: true },
+    { course: 'ENG 210', color: 'var(--course-pink)', title: 'Office Hours Cancelled Dec 20', body: 'Prof. Torres will not hold office hours this Friday. Please email for individual appointments or post questions in the discussion board.', time: '1 day ago', unread: true }
+  ];
+  if (announcementList) {
+    announcementList.innerHTML = announcements.map(a => `
+      <div class="announcement-item" onclick="Toast.show('Opening announcement from ${a.course}...','info')" tabindex="0" role="button" aria-label="${a.title}">
+        <div class="announcement-header">
+          <div>
+            <span class="badge" style="background:${a.color}22;color:${a.color}">${a.course}</span>
+            ${a.unread ? '<span class="badge badge-danger" style="margin-left:4px">New</span>' : ''}
+          </div>
+          <span style="font-size:0.75rem;color:var(--text-muted);white-space:nowrap">${a.time}</span>
+        </div>
+        <div class="announcement-title">${a.title}</div>
+        <div class="announcement-body">${a.body}</div>
+      </div>`).join('');
+  }
+
+  /* Render Quick Course Grid */
+  const courseGrid = document.getElementById('courseQuickGrid');
+  if (courseGrid) {
+    courseGrid.innerHTML = courses.map(c => `
+      <a href="course-home.html?id=${c.id}" class="course-quick-tile course-card hover-lift">
+        <div class="course-tile-icon" style="background:${c.color}22">
+          <span style="font-size:1.3rem">${c.icon}</span>
+        </div>
+        <div class="course-tile-code">${c.code}</div>
+        <div class="course-tile-name">${c.name.split('&')[0]}</div>
+        <div class="progress-bar" style="width:100%;margin-top:2px">
+          <div class="progress-fill" data-progress="${c.progress}" style="background:${c.color}"></div>
+        </div>
+        <small style="color:var(--text-muted)">${c.progress}% complete</small>
+        ${c.unread ? `<span class="badge badge-danger" style="font-size:0.65rem">${c.unread} new</span>` : ''}
+      </a>`).join('');
+    initProgressBars();
+  }
+
+  /* Render Mini Calendar */
+  function renderCalendar(year, month) {
+    const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const grid = document.getElementById('calGrid');
+    const label = document.getElementById('calMonthYear');
+    if (!grid || !label) return;
+
+    label.textContent = `${monthNames[month]} ${year}`;
+    const today = new Date();
+    const eventDays = new Set(calendarEvents.map(e => {
+      const d = new Date(e.date);
+      return d.getFullYear() === year && d.getMonth() === month ? d.getDate() : null;
+    }).filter(Boolean));
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const prevDays = new Date(year, month, 0).getDate();
+
+    const dayLabels = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+    let html = dayLabels.map(d => `<div class="cal-day-label">${d}</div>`).join('');
+
+    for (let i = firstDay - 1; i >= 0; i--) {
+      html += `<div class="cal-day other-month">${prevDays - i}</div>`;
+    }
+    for (let d = 1; d <= daysInMonth; d++) {
+      const isToday = d === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+      const hasEvent = eventDays.has(d);
+      html += `<div class="cal-day${isToday?' today':''}${hasEvent?' has-event':''}" 
+        onclick="window.location='calendar.html'" 
+        aria-label="${monthNames[month]} ${d}${isToday?' (today)':''}${hasEvent?' (has events)':''}"
+        tabindex="0" role="button">${d}</div>`;
+    }
+    const remaining = (7 - ((firstDay + daysInMonth) % 7)) % 7;
+    for (let i = 1; i <= remaining; i++) {
+      html += `<div class="cal-day other-month">${i}</div>`;
+    }
+    grid.innerHTML = html;
+  }
+
+  let calYear = new Date().getFullYear(), calMonth = new Date().getMonth();
+  renderCalendar(calYear, calMonth);
+  document.getElementById('calPrev')?.addEventListener('click', () => {
+    if (--calMonth < 0) { calMonth = 11; calYear--; }
+    renderCalendar(calYear, calMonth);
+  });
+  document.getElementById('calNext')?.addEventListener('click', () => {
+    if (++calMonth > 11) { calMonth = 0; calYear++; }
+    renderCalendar(calYear, calMonth);
+  });
+
+  /* Render Upcoming Events */
+  const upcomingList = document.getElementById('upcomingList');
+  if (upcomingList) {
+    const sorted = [...calendarEvents].sort((a,b) => new Date(a.date) - new Date(b.date)).slice(0,5);
+    upcomingList.innerHTML = sorted.map(ev => {
+      const d = new Date(ev.date + 'T' + (ev.time||'00:00'));
+      const dateStr = d.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' });
+      const timeStr = ev.time && ev.time !== '00:00' ? ` · ${ev.time}` : '';
+      return `
+        <div class="event-item">
+          <div class="event-dot" style="background:${ev.color}"></div>
+          <div class="event-info">
+            <div class="event-name">${ev.title}</div>
+            <div class="event-when">${dateStr}${timeStr} · ${ev.course}</div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  /* Render Grade Overview */
+  const gradeList = document.getElementById('gradeList');
+  if (gradeList) {
+    const gradeColors = { 'A': 'var(--success)', 'A-': 'var(--success)', 'B+': '#60A5FA', 'B': 'var(--info)', 'B-': 'var(--info)' };
+    gradeList.innerHTML = grades.map(g => `
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:0.8rem;font-weight:600;color:var(--text-primary);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${g.course}</div>
+          <div class="progress-bar">
+            <div class="progress-fill" data-progress="${g.overall}" style="background:${gradeColors[g.letter]||'var(--primary)'}"></div>
+          </div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-size:0.9rem;font-weight:800;color:${gradeColors[g.letter]||'var(--primary)'}">${g.letter}</div>
+          <div style="font-size:0.7rem;color:var(--text-muted)">${g.overall}%</div>
+        </div>
+      </div>`).join('');
+    initProgressBars();
+  }
+});
+
+function initProgressBars() {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const bar = entry.target;
+        const target = bar.dataset.progress || '0';
+        setTimeout(() => bar.style.width = target + '%', 100);
+        observer.unobserve(bar);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.progress-fill[data-progress]').forEach(bar => {
+    bar.style.width = '0%';
+    observer.observe(bar);
+  });
+}
+</script>
+</body>
+</html>
