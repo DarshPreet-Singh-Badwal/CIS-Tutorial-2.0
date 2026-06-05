@@ -223,7 +223,9 @@
   justify-content: center;
 }
 .app-shell.sidebar-collapsed .sidebar-toggle {
-  display: none;
+  display: flex;
+   transform: rotate(180deg);
+  transition: transform var(--transition-fast);
 }
 
 /* ── Sidebar Bottom ── */
