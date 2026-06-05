@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="Course Homepage — Brightspace LMS. View course content, assignments, grades and announcements."/>
+  <title>Course Homepage — Brightspace LMS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/design-system.css"/>
+  <link rel="stylesheet" href="css/layout.css"/>
+  <link rel="stylesheet" href="css/animations.css"/>
+  <style>
+    /* ── Course Homepage Styles ── */
+    .course-banner {
+      border-radius: var(--radius-xl);
+      padding: 32px;
+      color: #fff;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .course-banner::before {
+      content: '';
+      position: absolute;
+      top: -30%; right: -10%;
+      width: 250px; height: 250px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.06);
+    }
+    .course-banner-code {
+      font-size: 0.85rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      background: rgba(0,0,0,0.15);
+      padding: 4px 10px;
+      border-radius: var(--radius-sm);
+      align-self: flex-start;
+    }
+    .course-banner h1 {
+      color: #fff;
+      font-size: 1.8rem;
+      font-weight: 800;
+      margin: 0;
+      line-height: 1.3;
+    }
+    
+    .course-grid {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 24px;
+      align-items: start;
+    }
+    @media (max-width: 1024px) {
+      .course-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Tabs */
+    .course-nav-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+      gap: 4px;
+      overflow-x: auto;
+    }
+    .course-tab {
+      padding: 12px 20px;
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all var(--transition-fast);
+      white-space: nowrap;
+      font-family: var(--font);
+    }
+    .course-tab:hover {
+      color: var(--text-primary);
+      background: var(--bg-elevated);
+    }
+    .course-tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+
+    /* Cards */
+    .announcement-card {
+      padding: 16px;
+      border-radius: var(--radius-md);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      margin-bottom: 12px;
+    }
+    .instructor-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 20px;
+      text-align: center;
+    }
+    .instructor-avatar {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: var(--primary-light);
+      color: var(--primary);
+      font-size: 1.5rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 12px;
+    }
+
+    .content-item-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: var(--radius-md);
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      margin-bottom: 8px;
+      transition: all var(--transition-fast);
+    }
+    .content-item-row:hover {
+      border-color: var(--primary);
+      background: var(--bg-elevated);
+    }
+    .content-item-icon {
+      font-size: 1.1rem;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-elevated);
+      border-radius: 6px;
+    }
+
+    .topic-check {
+      cursor: pointer;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    .topic-check.checked {
+      background: var(--success);
+      border-color: var(--success);
+    }
+    .topic-check.checked::after {
+      content: '✓';
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: bold;
+    }
+
+    .syllabus-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 20px;
+    }
+  </style>
+</head>
+<body>
+<div class="app-shell" id="appShell">
+  <!-- ═══════════════ SIDEBAR ═══════════════ -->
+  <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
+    <div class="sidebar-header">
+      <a href="index.html" class="logo" aria-label="Brightspace LMS home">
+        <div class="logo-icon" aria-hidden="true">B</div>
+        <div class="logo-text"><span class="brand">Brightspace</span><span class="sub">D2L Learning</span></div>
+      </a>
+      <button class="sidebar-toggle" id="sidebarToggle" aria-label="Collapse sidebar">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+    </div>
+    <div class="role-toggle" role="group" aria-label="Switch user role">
+      <button class="role-btn" data-role-btn="student">🎓 Student</button>
+      <button class="role-btn" data-role-btn="instructor">👨‍🏫 Instructor</button>
+    </div>
+    <div class="sidebar-search">
+      <div class="input-group">
+        <svg class="input-icon" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="search" class="input" id="sidebarSearch" placeholder="Filter menu..." aria-label="Filter navigation"/>
+      </div>
+    </div>
+    <div class="sidebar-scroll">
+      <nav class="nav-section" aria-label="Main">
+        <div class="nav-section-label">Main</div>
+        <a href="index.html" class="nav-item" data-page="index.html"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg><span class="nav-label">Dashboard</span></a>
+        <a href="courses.html" class="nav-item" data-page="courses.html"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span class="nav-label">My Courses</span></a>
+        <a href="calendar.html" class="nav-item" data-page="calendar.html"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span class="nav-label">Calendar</span></a>
+        <a href="assignments.html" class="nav-item" data-page="assignments.html"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span class="nav-label">Assignments</span><span class="nav-badge">4</span></a>
+        <a href="grades.html" class="nav-item" data-page="grades.html"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span class="nav-label">Grades</span></a>
+        <a href="discussions.html" class="nav-item" data-page="discussions.html"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span class="nav-label">Discussions</span><span class="nav-badge">7</span></a>
+        <a href="quizzes.html" class="nav-item" data-page="quizzes.html"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span class="nav-label">Quizzes &amp; Tests</span></a>
+      </nav>
+      <nav class="nav-section" aria-label="Courses">
+        <div class="nav-section-label">My Courses</div>
+        <a href="course-home.html?id=cs301" class="nav-item" style="border-left:3px solid var(--course-blue);padding-left:13px"><span style="width:8px;height:8px;border-radius:50%;background:var(--course-blue);flex-shrink:0"></span><span class="nav-label">CS 301 — Algorithms</span></a>
+        <a href="course-home.html?id=cs401" class="nav-item" style="border-left:3px solid var(--course-purple);padding-left:13px"><span style="width:8px;height:8px;border-radius:50%;background:var(--course-purple);flex-shrink:0"></span><span class="nav-label">CS 401 — Machine Learning</span></a>
+        <a href="course-home.html?id=eng210" class="nav-item" style="border-left:3px solid var(--course-pink);padding-left:13px"><span style="width:8px;height:8px;border-radius:50%;background:var(--course-pink);flex-shrink:0"></span><span class="nav-label">ENG 210 — Tech Writing</span></a>
+        <a href="course-home.html?id=math301" class="nav-item" style="border-left:3px solid var(--course-orange);padding-left:13px"><span style="width:8px;height:8px;border-radius:50%;background:var(--course-orange);flex-shrink:0"></span><span class="nav-label">MATH 301 — Linear Algebra</span></a>
+        <a href="course-home.html?id=cs350" class="nav-item" style="border-left:3px solid var(--course-green);padding-left:13px"><span style="width:8px;height:8px;border-radius:50%;background:var(--course-green);flex-shrink:0"></span><span class="nav-label">CS 350 — Software Eng.</span></a>
+        <a href="course-home.html?id=cs210" class="nav-item" style="border-left:3px solid var(--course-teal);padding-left:13px"><span style="width:8px;height:8px;border-radius:50%;background:var(--course-teal);flex-shrink:0"></span><span class="nav-label">CS 210 — Database Systems</span></a>
+      </nav>
+    </div>
+    <div class="sidebar-bottom">
+      <a href="profile.html" class="sidebar-bottom-info" aria-label="View your profile">
+        <div class="avatar-placeholder" style="width:36px;height:36px;font-size:0.85rem" id="sidebarAvatar">AJ</div>
+        <div class="info-text"><div class="name" id="sidebarName">Alex Johnson</div><div class="role-text" id="sidebarRole">Student · Fall 2024</div></div>
+      </a>
+    </div>
+  </aside>
+
+  <!-- ═══════════════ TOPBAR ═══════════════ -->
+  <header class="topbar" role="banner">
+    <div class="topbar-left">
+      <button class="btn btn-icon" id="mobileSidebarToggle" aria-label="Open navigation menu" style="display:none">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <nav aria-label="Breadcrumb" class="breadcrumbs">
+        <a href="index.html">Home</a><span class="sep" aria-hidden="true">/</span>
+        <a href="courses.html">Courses</a><span class="sep" aria-hidden="true">/</span>
+        <span class="current" id="courseBreadcrumb" aria-current="page">Algorithms</span>
+      </nav>
+      <div class="input-group" style="max-width:320px;flex:1" role="search">
+        <svg class="input-icon" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="search" class="input" id="globalSearch" placeholder="Search this course... (⌘K)" aria-label="Search Course"/>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div id="systemStatus" class="system-status" role="status" aria-live="polite"><span class="status-dot online"></span> All systems operational</div>
+      <span class="badge badge-accent" id="roleBadge">Student View</span>
+      <button class="btn btn-icon" id="themeToggle" aria-label="Toggle theme">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      </button>
+      <div class="dropdown" style="position:relative">
+        <button class="btn btn-icon" id="notifBell" aria-label="Notifications — 3 unread" aria-expanded="false" aria-haspopup="true">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="notif-count" aria-hidden="true">3</span>
+        </button>
+        <div class="notif-panel" id="notifPanel" role="dialog" aria-label="Notifications" aria-hidden="true">
+          <div class="notif-panel-header"><h3 style="font-size:0.95rem;font-weight:700">Notifications</h3><button class="btn btn-ghost btn-sm" id="markAllRead">Mark all read</button></div>
+          <div class="notif-list">
+            <div class="notif-item unread" onclick="Toast.show('Opening...','info')"><div style="font-size:1.2rem">📢</div><div class="notif-item-content"><div class="notif-item-title">Quiz 3 Moved to Friday — CS 401</div><div class="notif-item-time">10 min ago</div></div></div>
+            <div class="notif-item unread" onclick="Toast.show('Opening...','success')"><div style="font-size:1.2rem">✅</div><div class="notif-item-content"><div class="notif-item-title">Assignment 3 Graded — CS 301</div><div class="notif-item-time">2 hours ago</div></div></div>
+            <div class="notif-item unread"><div style="font-size:1.2rem">💬</div><div class="notif-item-content"><div class="notif-item-title">New Reply in Sprint 3 — CS 350</div><div class="notif-item-time">5 hours ago</div></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="dropdown">
+        <button class="btn btn-icon" data-dropdown-trigger aria-label="User menu" aria-expanded="false" style="padding:0">
+          <div class="avatar-placeholder" style="width:36px;height:36px;font-size:0.85rem">AJ</div>
+        </button>
+        <div class="dropdown-menu" role="menu">
+          <div style="padding:10px 12px 6px;border-bottom:1px solid var(--border)"><div style="font-weight:600;font-size:0.875rem">Alex Johnson</div><div style="font-size:0.78rem;color:var(--text-muted)">alex.johnson@university.edu</div></div>
+          <a href="profile.html" class="dropdown-item" role="menuitem"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile &amp; Settings</a>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-item danger" onclick="Toast.show('Signed out.','warning')"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Sign out</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ═══════════════ MAIN CONTENT ═══════════════ -->
+  <main class="main-content" id="mainContent" role="main" aria-label="Course Homepage">
+    <!-- Course Banner -->
+    <div class="course-banner stagger-1" id="courseBanner">
+      <span class="course-banner-code" id="courseBannerCode">CS 301</span>
+      <h1 id="courseBannerTitle">Algorithms &amp; Data Structures</h1>
+      <p style="margin: 4px 0 0; color: rgba(255,255,255,0.85)" id="courseBannerSubtitle">Fall 2024 · 3 Credits</p>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="course-nav-tabs stagger-2" role="tablist" aria-label="Course Sections">
+      <button class="course-tab active" onclick="switchSection('overview', this)" role="tab" aria-selected="true">Overview</button>
+      <button class="course-tab" onclick="switchSection('content', this)" role="tab" aria-selected="false">Content Modules</button>
+      <button class="course-tab" onclick="switchSection('assignments', this)" role="tab" aria-selected="false">Assignments</button>
+      <button class="course-tab" onclick="switchSection('grades', this)" role="tab" aria-selected="false">Grades</button>
+      <button class="course-tab" onclick="switchSection('discussions', this)" role="tab" aria-selected="false">Discussions</button>
+    </div>
+
+    <!-- Course Page Grid -->
+    <div class="course-grid stagger-3">
+      <!-- Main/Left Column -->
+      <div id="sectionContainer">
+        <!-- Renders based on active tab -->
+      </div>
+
+      <!-- Right Column Sidebar -->
+      <div style="display:flex;flex-direction:column;gap:20px" class="stagger-4">
+        <!-- Course Progress -->
+        <div class="card">
+          <h3 style="font-size:0.95rem;font-weight:700;margin-bottom:12px">Course Progress</h3>
+          <div style="display:flex;justify-content:space-between;font-size:0.8rem;font-weight:600;margin-bottom:6px">
+            <span>Overall Completion</span>
+            <span id="courseProgressVal">68%</span>
+          </div>
+          <div class="progress-bar-container">
+            <div class="progress-bar-fill" id="courseProgressBar" style="width:68%;background:var(--primary)"></div>
+          </div>
+          <div style="display:flex;gap:12px;margin-top:14px;font-size:0.75rem;color:var(--text-secondary)">
+            <div>📁 <strong>3/4</strong> Modules</div>
+            <div>📄 <strong>11/18</strong> Topics</div>
+          </div>
+        </div>
+
+        <!-- Instructor Info -->
+        <div class="instructor-card">
+          <div class="instructor-avatar" id="instAvatar">SC</div>
+          <h3 id="instName" style="font-size:0.95rem;font-weight:700;margin-bottom:2px">Dr. Sarah Chen</h3>
+          <p id="instRole" style="font-size:0.78rem;color:var(--text-muted);margin-bottom:14px">Associate Professor</p>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <button class="btn btn-secondary btn-sm w-full" onclick="Toast.show('Email composer opened','success')">✉ Email Instructor</button>
+            <button class="btn btn-ghost btn-sm w-full" onclick="Toast.show('Booking calendar loaded','info')">📅 Book Office Hours</button>
+          </div>
+        </div>
+
+        <!-- Syllabus Quick View -->
+        <div class="syllabus-card">
+          <h3 style="font-size:0.95rem;font-weight:700;margin-bottom:12px">Syllabus &amp; Info</h3>
+          <ul style="padding:0;margin:0;list-style:none;display:flex;flex-direction:column;gap:10px;font-size:0.83rem">
+            <li>📄 <a href="#" class="link" onclick="Toast.show('Downloading Syllabus PDF...','info');return false">Download Syllabus.pdf</a></li>
+            <li>🕒 <strong>Lecture:</strong> Mon/Wed 10:00 AM - 11:15 AM</li>
+            <li>🏫 <strong>Location:</strong> Tech Hall Room 402</li>
+            <li>🎯 <strong>Credits:</strong> 3.0 Credits</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/navigation.js"></script>
+<script src="js/components.js"></script>
+<script>
+  let activeCourse = null;
+
+  function loadCourse() {
+    const params = new URLSearchParams(window.location.search);
+    const courseId = params.get('id') || 'cs301';
+    activeCourse = MockData.courses.find(c => c.id === courseId) || MockData.courses[0];
+    
+    // Banner
+    document.getElementById('courseBanner').style.background = `linear-gradient(135deg, ${activeCourse.color} 0%, #202446 100%)`;
+    document.getElementById('courseBannerCode').textContent = activeCourse.code;
+    document.getElementById('courseBannerTitle').textContent = activeCourse.name;
+    document.getElementById('courseBreadcrumb').textContent = activeCourse.code;
+
+    // Progress
+    document.getElementById('courseProgressVal').textContent = `${activeCourse.progress}%`;
+    document.getElementById('courseProgressBar').style.width = `${activeCourse.progress}%`;
+    document.getElementById('courseProgressBar').style.background = activeCourse.color;
+
+    // Instructor
+    const nameArr = activeCourse.instructor.split(' ');
+    const initials = nameArr.map(n => n[0]).join('');
+    document.getElementById('instAvatar').textContent = initials;
+    document.getElementById('instAvatar').style.background = `${activeCourse.color}22`;
+    document.getElementById('instAvatar').style.color = activeCourse.color;
+    document.getElementById('instName').textContent = activeCourse.instructor;
+    
+    switchSection('overview');
+  }
+
+  function switchSection(section, btnEl) {
+    if (btnEl) {
+      document.querySelectorAll('.course-tab').forEach(t => {
+        t.classList.remove('active');
+        t.setAttribute('aria-selected', 'false');
+      });
+      btnEl.classList.add('active');
+      btnEl.setAttribute('aria-selected', 'true');
+    }
+
+    const container = document.getElementById('sectionContainer');
+    
+    if (section === 'overview') {
+      const dueText = activeCourse.nextDue ? `Due ${activeCourse.nextDue.date}: ${activeCourse.nextDue.title}` : 'No upcoming deadlines';
+      const deadlineItem = activeCourse.nextDue ? `
+        <div class="announcement-card" style="border-left: 3px solid var(--danger)">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span class="badge badge-danger">Urgent Deadline</span>
+            <span style="font-size:0.75rem;color:var(--text-muted)">Countdown: <span class="countdown" data-due="${activeCourse.nextDue.date}T23:59:59"></span></span>
+          </div>
+          <h4 style="margin: 8px 0 4px;font-size:0.92rem;font-weight:700">${activeCourse.nextDue.title}</h4>
+          <p style="font-size:0.8rem;color:var(--text-secondary)">This item is weighting towards your final mark. Please submit on time.</p>
+          <div style="margin-top:12px">
+            <a href="assignments.html" class="btn btn-primary btn-sm">Go to Submission</a>
+          </div>
+        </div>
+      ` : `<p style="font-size:0.85rem;color:var(--text-muted)">Awesome! No deadlines due this week.</p>`;
+
+      container.innerHTML = `
+        <div class="card stagger-1" style="margin-bottom:20px">
+          <h3 style="font-size:1rem;font-weight:700;margin-bottom:14px">📢 Course Announcements</h3>
+          <div class="announcement-card">
+            <div style="display:flex;justify-content:space-between">
+              <span class="badge" style="background:${activeCourse.color}22;color:${activeCourse.color}">Course Info</span>
+              <span style="font-size:0.75rem;color:var(--text-muted)">2 days ago</span>
+            </div>
+            <h4 style="margin: 6px 0 4px;font-size:0.9rem;font-weight:700">Welcome to ${activeCourse.name}!</h4>
+            <p style="font-size:0.83rem;color:var(--text-secondary);line-height:1.5">Welcome students! All course communications will be posted here. Please review the syllabus and join the discussion forum.</p>
+          </div>
+          <div class="announcement-card">
+            <div style="display:flex;justify-content:space-between">
+              <span class="badge badge-muted">Reminder</span>
+              <span style="font-size:0.75rem;color:var(--text-muted)">4 days ago</span>
+            </div>
+            <h4 style="margin: 6px 0 4px;font-size:0.9rem;font-weight:700">Office hours schedule updated</h4>
+            <p style="font-size:0.83rem;color:var(--text-secondary);line-height:1.5">Office hours will be held online via Zoom on Tuesdays from 2 PM to 4 PM starting next week.</p>
+          </div>
+        </div>
+
+        <div class="card stagger-2">
+          <h3 style="font-size:1rem;font-weight:700;margin-bottom:14px">⏰ Upcoming Deadlines</h3>
+          ${deadlineItem}
+        </div>
+      `;
+      initCountdowns();
+    }
+    
+    else if (section === 'content') {
+      // Content modules
+      const modules = MockData.contentModules;
+      container.innerHTML = `
+        <div class="card stagger-1">
+          <h3 style="font-size:1rem;font-weight:700;margin-bottom:14px">Course Modules</h3>
+          <div>
+            ${modules.map((m, idx) => `
+              <div style="margin-bottom:20px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                  <h4 style="font-size:0.95rem;font-weight:700;color:var(--text-primary)">${m.title}</h4>
+                  <span style="font-size:0.78rem;color:var(--text-secondary)">${m.progress}% Completed</span>
+                </div>
+                <div>
+                  ${m.topics.map(t => `
+                    <div class="content-item-row">
+                      <div class="topic-check ${t.read?'checked':''}" onclick="this.classList.toggle('checked');Toast.show('Topic read status updated','success')"></div>
+                      <div class="content-item-icon">${t.type==='video'?'🎥':t.type==='reading'?'📖':t.type==='file'?'📄':'✏️'}</div>
+                      <div style="flex:1">
+                        <div class="content-list-title" style="font-size:0.85rem;font-weight:600">${t.title}</div>
+                        <div style="font-size:0.72rem;color:var(--text-muted)">${t.duration || t.size || 'Due ' + t.due}</div>
+                      </div>
+                      <a href="content.html" class="btn btn-ghost btn-sm">Open</a>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+    
+    else if (section === 'assignments') {
+      const courseAssignments = MockData.assignments.filter(a => a.course === activeCourse.code);
+      container.innerHTML = `
+        <div class="card stagger-1">
+          <h3 style="font-size:1rem;font-weight:700;margin-bottom:14px">Assignments</h3>
+          ${courseAssignments.length === 0 ? `<p style="font-size:0.85rem;color:var(--text-muted)">No assignments listed for this course.</p>` : `
+            <div style="display:flex;flex-direction:column;gap:10px">
+              ${courseAssignments.map(a => `
+                <div class="content-item-row" style="justify-content:space-between">
+                  <div style="display:flex;align-items:center;gap:12px">
+                    <div class="content-item-icon">✏️</div>
+                    <div>
+                      <div style="font-size:0.875rem;font-weight:700;color:var(--text-primary)">${a.title}</div>
+                      <div style="font-size:0.75rem;color:var(--text-muted)">Due: ${a.due.replace('T', ' ')}</div>
+                    </div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:12px">
+                    <span class="badge badge-${a.status==='graded'?'success':(a.status==='submitted'?'info':'warning')}">${a.status}</span>
+                    <a href="assignments.html" class="btn btn-secondary btn-sm">View</a>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          `}
+        </div>
+      `;
+    }
+    
+    else if (section === 'grades') {
+      const courseGrades = MockData.grades.find(g => g.course.includes(activeCourse.code));
+      if (!courseGrades) {
+        container.innerHTML = `<div class="card stagger-1"><p style="font-size:0.85rem;color:var(--text-muted)">No grades posted yet for this course.</p></div>`;
+        return;
+      }
+      container.innerHTML = `
+        <div class="card stagger-1" style="margin-bottom:20px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+            <h3 style="font-size:1rem;font-weight:700">Course Grades Summary</h3>
+            <span class="grade-badge" style="background:${activeCourse.color}22;color:${activeCourse.color};font-size:1.1rem">${courseGrades.letter} (${courseGrades.overall}%)</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            ${courseGrades.categories.map(cat => `
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:0.8rem;font-weight:600;margin-bottom:4px">
+                  <span>${cat.name} (Weight: ${cat.weight}%)</span>
+                  <span>Score: ${cat.earned !== null ? cat.earned + '%' : 'N/A'}</span>
+                </div>
+                <div class="progress-bar-container" style="margin-top:0">
+                  <div class="progress-bar-fill" style="width:${cat.earned || 0}%;background:${activeCourse.color}"></div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+    
+    else if (section === 'discussions') {
+      const courseDiscussions = MockData.discussions.filter(d => d.course === activeCourse.code);
+      container.innerHTML = `
+        <div class="card stagger-1">
+          <h3 style="font-size:1rem;font-weight:700;margin-bottom:14px">Course Discussions</h3>
+          ${courseDiscussions.length === 0 ? `<p style="font-size:0.85rem;color:var(--text-muted)">No discussions posted in this course yet.</p>` : `
+            <div style="display:flex;flex-direction:column;gap:10px">
+              ${courseDiscussions.map(d => `
+                <div class="content-item-row" style="justify-content:space-between">
+                  <div style="display:flex;align-items:center;gap:12px">
+                    <div class="content-item-icon">💬</div>
+                    <div>
+                      <div style="font-size:0.875rem;font-weight:700;color:var(--text-primary)">${d.title}</div>
+                      <div style="font-size:0.75rem;color:var(--text-muted)">Last reply by ${d.author} · ${d.lastActivity}</div>
+                    </div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:12px">
+                    <span class="badge badge-muted">${d.replies} replies</span>
+                    <a href="discussions.html" class="btn btn-secondary btn-sm">Open Forum</a>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          `}
+        </div>
+      `;
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    loadCourse();
+  });
+</script>
+</body>
+</html>
